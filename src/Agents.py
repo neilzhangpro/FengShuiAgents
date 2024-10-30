@@ -29,31 +29,29 @@ class AgentClass:
             self.tools,
             self.prompt,
         )
-        self.agent_chain = None
-    
-    def run_agent(self,input):
         self.agent_chain = AgentExecutor(
             agent=self.agent,
             tools=self.tools,
             memory=self.memory,
             verbose=True
         )
+    
+
+    def run_agent(self,input):
         # run emotion sensing
         self.feeling = self.emotion.Emotion_Sensing(input)
+        self.prompt = PromptClass(memorykey=self.memorykey,feeling=self.feeling).Prompt_Structure()
+        print(self.feeling)
+        print(self.prompt)
         res = self.agent_chain.invoke({
             "input": input,
         })
         return res
     
     async def run_agent_ws(self,input):
-        self.agent_chain = AgentExecutor(
-            agent=self.agent,
-            tools=self.tools,
-            memory=self.memory,
-            verbose=True
-        )
         # run emotion sensing
         self.feeling = self.emotion.Emotion_Sensing(input)
+        self.prompt = PromptClass(memorykey=self.memorykey,feeling=self.feeling).Prompt_Structure()
         async for event in self.agent_chain.astream_events({"input": input,"chat_history":self.memory},version="v2"):
             kind = event["event"]
             if kind == "on_chat_model_stream":
